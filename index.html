@@ -115,10 +115,12 @@
         </main>
         <div class="container d-flex">
             <label for="appt">Select a time: </label>
-            <input type="time" id="alarm" name="alarm">
+            <input type="time" id="alarm" name="alarm" onclick="resetAlarm()">
             <div class="mx-5">
-                <button type="button" id="snooze" onclick="" class="mx-2 px-3 btn btn-primary btn-sm">Snooze</button>
-                <button type="button" id="stop" onclick="" class="mx-2 px-4 btn btn-secondary btn-sm">Stop</button>
+                <button type="button" id="snooze" onclick="snoozeAlarm()"
+                    class="mx-2 px-3 btn btn-primary btn-sm">Snooze</button>
+                <button type="button" id="stop" onclick="stopAlarm()"
+                    class="mx-2 px-4 btn btn-secondary btn-sm">Stop</button>
             </div>
         </div>
 
@@ -129,6 +131,38 @@
         </script>
     <script>
         const audio = new Audio("soft-piano-72454.mp3");
+        let bool = false;
+        let stp = false;
+        let snz = false;
+        let pseudoHour;
+        let pseudoMin;
+
+        const resetAlarm = () => {
+            stp = false;
+            snz = false;
+        }
+
+        const ringAlarm = (alarmHour, alarmMin) => {
+            if (pseudoHour === alarmHour && pseudoMin === alarmMin) {
+                if (bool == true) {
+                    console.log("Alarm ringing");
+                    audio.play();
+                }
+                else { audio.pause(); }
+            }
+            else { audio.pause(); }
+        }
+
+        function stopAlarm() {
+            stp = true;
+            snz = false;
+        }
+
+        function snoozeAlarm() {
+            snz = true;
+            pseudoMin = pseudoMin + 2;
+        }
+
         const updateTime = () => {
             let d = new Date();
             usa.innerHTML = d.toLocaleString('en-US', {
@@ -141,11 +175,19 @@
 
             let alarmHour = alarm.value.split(":")[0];
             let alarmMin = alarm.value.split(":")[1];
-            if (d.getHours() == alarmHour && d.getMinutes() == alarmMin) {
-                console.log("Alarm ringing");
-                audio.play();
+            if (d.getHours() == alarmHour && d.getMinutes() == alarmMin && !snz && !stp) {
+                pseudoHour = Number(alarmHour);
+                pseudoMin = Number(alarmMin);
+                bool = true;
+                ringAlarm(d.getHours(), d.getMinutes());
             }
-            else { audio.pause(); }
+            else if (snz) {
+                ringAlarm(d.getHours(), d.getMinutes());
+            }
+            else {
+                bool = false;
+                ringAlarm(d.getHours(), d.getMinutes());
+            }
         }
         setInterval(updateTime, 1000);
 
